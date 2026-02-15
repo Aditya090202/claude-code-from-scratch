@@ -47,7 +47,7 @@ def main():
     # This checks if the result contains a tool_calls array if so execute the tool
     chat_message = chat.choices[0].message
 
-    if "tool_calls" in chat_message:
+    if chat_message.tool_calls:
         extract_tool = chat_message.tool_calls
         tool_function = extract_tool[0].function
         parse_function_name = tool_function.name
