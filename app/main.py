@@ -4,21 +4,24 @@ import os
 import string
 import sys
 
+from dotenv import load_dotenv
 from openai import OpenAI
-
-API_KEY = os.getenv("OPENROUTER_API_KEY")
-BASE_URL = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1")
 
 
 def main():
+    load_dotenv()
+
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    base_url = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1")
+
     p = argparse.ArgumentParser()
     p.add_argument("-p", required=True)
     args = p.parse_args()
 
-    if not API_KEY:
+    if not api_key:
         raise RuntimeError("OPENROUTER_API_KEY is not set")
 
-    client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
+    client = OpenAI(api_key=api_key, base_url=base_url)
 
     chat = client.chat.completions.create(
         model="anthropic/claude-haiku-4.5",
@@ -45,10 +48,10 @@ def main():
     )
 
     # This checks if the result contains a tool_calls array if so execute the tool
-    chat_message = chat.choices[0].get("messages")
+    chat_message = chat.choices[0].messages
 
-    if "tool_calls" in chat_message:
-        extract_tool = chat_message.get("tool_calls")
+    if tool_calls in chat_message:
+        extract_tool = chat_message.tool_calls
         tool_function = extract_tool[0].get("function")
         parse_function_name = tool_function.get("name")
         if parse_function_name == "ReadFile":
