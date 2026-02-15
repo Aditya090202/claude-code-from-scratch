@@ -4,24 +4,21 @@ import os
 import string
 import sys
 
-from dotenv import load_dotenv
 from openai import OpenAI
+
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+BASE_URL = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1")
 
 
 def main():
-    load_dotenv()
-
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    base_url = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1")
-
     p = argparse.ArgumentParser()
     p.add_argument("-p", required=True)
     args = p.parse_args()
 
-    if not api_key:
+    if not API_KEY:
         raise RuntimeError("OPENROUTER_API_KEY is not set")
 
-    client = OpenAI(api_key=api_key, base_url=base_url)
+    client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
     chat = client.chat.completions.create(
         model="anthropic/claude-haiku-4.5",
