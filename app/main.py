@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import string
 import sys
@@ -27,13 +28,13 @@ def main():
                 "type": "function",
                 "function": {
                     "name": "ReadFile",
-                    "description": "Read and return the contents of a file",
+                    "description": "Read and return the contents of a file from disk",
                     "parameters": {
                         "type":"object",
                         "properties": {
                           "file_path": {
                             "type": "string",
-                            "description": "The path to read the file"
+                            "description": "The absolute or relative path to a file"
                            },  
                         },
                         "required": ["file_path"]
@@ -42,6 +43,26 @@ def main():
             }
         ]
     )
+
+    # This checks if the result contains a tool_calls array if so execute the tool
+    chat_message = chat.choices[0].get("messages")
+
+    if "tool_calls" in chat_message:
+        extract_tool = chat_message.get("tool_calls")
+        tool_function = extract_tool[0].get("function")
+        parse_function_name = tool_function.get("name")
+        if parse_function_name == "ReadFile":
+            #Grab the arguments for the read tool call, which is a file path
+            parse_arguments = json.loads(tool_function.get("arguments"))
+            file_path = parse_arguments.get("file_path")
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            print(content)
+
+
+
+
+
 
     if not chat.choices or len(chat.choices) == 0:
         raise RuntimeError("no choices in response")
