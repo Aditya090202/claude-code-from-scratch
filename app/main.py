@@ -47,13 +47,13 @@ def main():
     # This checks if the result contains a tool_calls array if so execute the tool
     chat_message = chat.choices[0].message
 
-    if tool_calls in chat_message:
+    if "tool_calls" in chat_message:
         extract_tool = chat_message.tool_calls
-        tool_function = extract_tool[0].get("function")
-        parse_function_name = tool_function.get("name")
+        tool_function = extract_tool[0].function
+        parse_function_name = tool_function.name
         if parse_function_name == "ReadFile":
             #Grab the arguments for the read tool call, which is a file path
-            parse_arguments = json.loads(tool_function.get("arguments"))
+            parse_arguments = json.loads(tool_function.arguments)
             file_path = parse_arguments.get("file_path")
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
