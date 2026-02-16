@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import string
+import subprocess
 import sys
 
 from openai import OpenAI
@@ -62,6 +63,23 @@ def main():
                             }
                         }
                     }
+                },
+                {
+                    "type":"function",
+                    "function": {
+                        "name": "Bash",
+                        "description":"Run commands in the shell",
+                        "parameters":{
+                            "type":"object",
+                            "properties": {
+                                "command":{
+                                    "type": "string",
+                                    "description": "The command to execute in the shell"
+                                }
+                            },
+                            "required":["command"]
+                        },
+                    },
                 }
             ]
         )
@@ -74,6 +92,7 @@ def main():
         if chat_message.tool_calls:
             extract_tool = chat_message.tool_calls
             tool_function = extract_tool[0].function
+            tool_id = chat_message.tool_calls[0].id
             parse_function_name = tool_function.name
             if parse_function_name == "ReadFile":
                 #Grab the arguments for the read tool call, which is a file path
@@ -84,7 +103,7 @@ def main():
                 #take the result of your tool call and add it to the messages array
                 message_array.append({
                     "role": "tool",
-                    "tool_call_id": chat_message.tool_calls[0].id,
+                    "tool_call_id": tool_id,
                     "content": content
                 })
             if parse_function_name == "WriteToFile":
@@ -95,9 +114,29 @@ def main():
                     f.write(content)
                 message_array.append({
                     "role":"tool",
-                    "tool_call_id": chat_message.tool_calls[0].id,
+                    "tool_call_id": tool_id,
                     "content": f"Wrote {len(content)} characters to {file_path}"
                 })
+            if parse_function_name == "Bash":
+                parse_arguments = json.loads(tool_function.arguments)
+                bash_command = parse_arguments.get("command")
+                result = subprocess.run(
+                    bash_command,
+                    capture_output=True, 
+                    text=True,
+                )
+                if result.err:
+                    message_array.append({
+                    "role": "tool",
+                    "tool_call_id": tool_id,
+                    "content": f"Error running the bash command: {result.stderr}"
+                })
+                else:
+                    message_array.append({
+                        "role": "tool",
+                        "tool_call_id": tool_id,
+                        "content": f"Output of the bash command {result.stdout}"
+                    })
         else:
             break
 
