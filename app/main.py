@@ -121,7 +121,8 @@ def main():
                 parse_arguments = json.loads(tool_function.arguments)
                 bash_command = parse_arguments.get("command")
                 result = subprocess.run(
-                    bash_command,
+                    [bash_command],
+                    shell=False,
                     capture_output=True, 
                     text=True,
                 )
