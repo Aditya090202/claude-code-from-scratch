@@ -125,7 +125,7 @@ def main():
                     capture_output=True, 
                     text=True,
                 )
-                if result.err:
+                if result.stderr:
                     message_array.append({
                     "role": "tool",
                     "tool_call_id": tool_id,
