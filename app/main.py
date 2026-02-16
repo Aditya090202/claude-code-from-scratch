@@ -33,13 +33,34 @@ def main():
                         "parameters": {
                             "type":"object",
                             "properties": {
-                            "file_path": {
-                                "type": "string",
-                                "description": "The absolute or relative path to a file"
-                            },  
+                                "file_path": {
+                                    "type": "string",
+                                    "description": "The absolute or relative path to a file"
+                                },  
                             },
                             "required": ["file_path"]
                         },
+                    }
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "WriteToFile",
+                        "description":"Write content to a file",
+                        "parameters": {
+                            "type": "object",
+                            "required": ["file_path", "content"],
+                            "properties": {
+                                "file_path":{
+                                    "type":"string",
+                                    "description":"The relative path of the file",
+                                },
+                                "content": {
+                                    "type": "string",
+                                    "description":"The content of the file that you want to write to"
+                                }
+                            }
+                        }
                     }
                 }
             ]
@@ -65,6 +86,17 @@ def main():
                     "role": "tool",
                     "tool_call_id": chat_message.tool_calls[0].id,
                     "content": content
+                })
+            if parse_function_name == "WriteToFile":
+                parse_arguments = json.loads(tool_function.arguments)
+                file_path = parse_arguments.get("file_path")
+                content = parse_arguments.get("content")
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                message_array.append({
+                    "role":"tool",
+                    "tool_call_id": chat_message.tool_calls[0].id,
+                    "content": f"Wrote {len(content)} characters to {file_path}"
                 })
         else:
             break
