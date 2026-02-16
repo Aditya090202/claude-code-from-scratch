@@ -4,6 +4,7 @@ import os
 import string
 import subprocess
 import sys
+import shlex
 
 from openai import OpenAI
 
@@ -120,8 +121,9 @@ def main():
             if parse_function_name == "Bash":
                 parse_arguments = json.loads(tool_function.arguments)
                 bash_command = parse_arguments.get("command")
+                args = shlex.split(bash_command)
                 result = subprocess.run(
-                    [bash_command],
+                    args,
                     shell=False,
                     capture_output=True, 
                     text=True,
